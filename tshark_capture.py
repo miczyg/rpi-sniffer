@@ -1,13 +1,27 @@
 import os
 import constants
 import aws_upload
+import logging
+import time
+
+logger = logging.getLogger('rpi-logger')
+logger.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+
+# create console handler and set level to debug
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+# add formatter to ch
+ch.setFormatter(formatter)
+# add ch to logger
+logger.addHandler(ch)
 
 tshark_command = "tshark -i {interface} -w {out_file} "
 out_file = constants.DUMP_FOLDER + "/buffer_dump.pcap"
 
 #ringbuffer for dividing files
-max_one_file_size = 40*1000 #40MB = 20000 KB
-num_files = 50
+max_one_file_size = 10*1000 #10MB = 20000 KB
+num_files = 100
 ring_buffer_formatter = "-b filesize:{s} -a files:{num_files}".format(s=max_one_file_size, 
                                                                     num_files=num_files) 
 
@@ -24,9 +38,8 @@ output_formatter = "-F pcap "
 
 #set promiscous mode for capture
 ret =  os.system(constants.PROMISCOUS_ON)
-print ret
 if ret == 0:
-    print "Promiscous ON"
+    logger.info("Promiscous ON")
     command = tshark_command.format(
         interface=constants.INTERFACE, 
         out_file=out_file)
@@ -41,17 +54,22 @@ if ret == 0:
     print command
     
     ret = os.system(command)
-    print ret
+    logger.info("Capture completed with status: {}".format(ret))
 
     ret =  os.system(constants.PROMISCOUS_OFF)
-    print ret
-    print "Promiscous OFF"
+    logger.info("Promiscous OFF")
 else:
-    print "Unable to set promiscous. Existing..."
+    logger.error("Unable to set promiscous. Exiting...")
 
+logger.info("Starting AWS upload...")
 # aws move files
+start = time.time()
 print aws_upload.move_dumps(constants.DUMP_FOLDER)
+end = time.time()
+logger.info("Upload ended in {} seconds".format(end - start))
+logger.info("Uploading logs...")
 print aws_upload.move_logs(constants.LOG_FOLDER)
+logger.info("Logs uploaded. Exiting.")
 
 
     
