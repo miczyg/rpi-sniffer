@@ -6,7 +6,7 @@ tshark_command = "tshark -i {interface} -w {out_file} "
 out_file = constants.DUMP_FOLDER + "/buffer_dump.pcap"
 
 #ringbuffer for dividing files
-max_one_file_size = 20*1000 #20MB = 20000 KB
+max_one_file_size = 40*1000 #40MB = 20000 KB
 num_files = 50
 ring_buffer_formatter = "-b filesize:{s} -a files:{num_files}".format(s=max_one_file_size, 
                                                                     num_files=num_files) 
