@@ -1,18 +1,27 @@
-import os
+import os, os.path
 import datetime
 import logging
+import time
 
 bucket_name = "rpi-sniffer-dumps"
 
-def move_dumps(dumps_dir):
+def move_dumps(dumps_dir, logger):
     remote_dir = "dumps/"
     remote_dir += datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-    command = "aws s3 --region eu-central-1 mv {local_dir} s3://{bucket}/{folder_name} --recursive --debug".format(
+    command = "aws s3 --region eu-central-1 mv {local_dir} s3://{bucket}/{folder_name} --recursive".format(
         local_dir=dumps_dir,
-        bucket = bucket_name, 
+        bucket = bucket_name,
         folder_name=remote_dir)
     print command
-    return os.system(command)
+    files_to_upload = len([name for name in os.listdir(dumps_dir) if os.path.isfile(os.path.join(dumps_dir, name))])
+    timeout = time.time() + 60*90 # 1.5h max for sending files
+    while time.time() < timeout:
+    	os.system(command)
+	files_to_upload = len([name for name in os.listdir(dumps_dir) if os.path.isfile(os.path.join(dumps_dir, name))])
+	if files_to_upload <= 0:
+	    logger.info("All files uploaded :)") 
+	    break
+        logger.info("Remaining {} files to upload. Retrying...".format(files_to_upload))
 
 def move_logs(logs_dir):
     remote_folder = "logs/"

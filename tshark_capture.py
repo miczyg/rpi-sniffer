@@ -64,7 +64,7 @@ else:
 logger.info("Starting AWS upload...")
 # aws move files
 start = time.time()
-print aws_upload.move_dumps(constants.DUMP_FOLDER)
+aws_upload.move_dumps(constants.DUMP_FOLDER, logger)
 end = time.time()
 logger.info("Upload ended in {} seconds".format(end - start))
 logger.info("Uploading logs...")
