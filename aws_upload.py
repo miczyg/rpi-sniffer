@@ -2,8 +2,11 @@ import os, os.path
 import datetime
 import logging
 import time
+import constants
 
 bucket_name = "rpi-sniffer-dumps"
+
+
 
 def move_dumps(dumps_dir, logger):
     remote_dir = "dumps/"
@@ -34,4 +37,25 @@ def move_logs(logs_dir):
     return os.system(command)
         
 
-
+if __name__=="__main__":
+    logger = logging.getLogger('rpi-logger')
+    logger.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    
+    # create console handler and set level to debug
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+    # add formatter to ch
+    ch.setFormatter(formatter)
+    # add ch to logger
+    logger.addHandler(ch)
+    logger.info("Starting AWS upload...")
+    
+    # aws move files
+    start = time.time()
+    move_dumps(constants.DUMP_FOLDER, logger)
+    end = time.time()
+    logger.info("Upload ended in {} seconds".format(end - start))
+    logger.info("Uploading logs...")
+    print move_logs(constants.LOG_FOLDER)
+    logger.info("Logs uploaded. Exiting.")
