@@ -17,7 +17,7 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 
 tshark_command = "tshark -i {interface} -w {out_file} "
-out_file = constants.DUMP_FOLDER + "/buffer_dump.pcap"
+out_file = constants.DUMP_FOLDER + "/buffer_dump_HEADER_ONLY.pcap"
 
 #ringbuffer for dividing files
 max_one_file_size = 10*1000 #10MB = 20000 KB
@@ -43,7 +43,8 @@ if ret == 0:
     command = tshark_command.format(
         interface=constants.INTERFACE, 
         out_file=out_file)
-
+    #capture headers inly with max size 60bytes
+    command += "-s 60 "
     #save to pcap no pcap-ng
     command += output_formatter
     command += timeout_formatter
