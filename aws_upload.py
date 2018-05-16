@@ -17,7 +17,7 @@ def move_dumps(dumps_dir, logger):
         folder_name=remote_dir)
     print command
     files_to_upload = len([name for name in os.listdir(dumps_dir) if os.path.isfile(os.path.join(dumps_dir, name))])
-    timeout = time.time() + 60*90 # 1.5h max for sending files
+    timeout = time.time() + 60*60*4 # 4h max for sending files
     while time.time() < timeout:
     	os.system(command)
 	files_to_upload = len([name for name in os.listdir(dumps_dir) if os.path.isfile(os.path.join(dumps_dir, name))])
