@@ -3,6 +3,7 @@ import constants
 import aws_upload
 import logging
 import time
+import datetime
 
 logger = logging.getLogger('rpi-logger')
 logger.setLevel(logging.INFO)
@@ -16,8 +17,9 @@ ch.setFormatter(formatter)
 # add ch to logger
 logger.addHandler(ch)
 
-tshark_command = "tshark -i {interface} -w {out_file} "
+tshark_command = "tshark -i {interface} "
 out_file = constants.DUMP_FOLDER + "/buffer_dump_HEADER_ONLY.pcap"
+zipper = "-w - | gzip --fast > " + constants.DUMP_FOLDER + "/output_{datetime}.pcap.gz"
 
 #ringbuffer for dividing files
 max_one_file_size = 10*1000 #10MB = 20000 KB
@@ -26,7 +28,7 @@ ring_buffer_formatter = "-b filesize:{s} -a files:{num_files}".format(s=max_one_
                                                                     num_files=num_files) 
 
 #timeout stop condition in seconds
-timeout = 8*60*60 # 8h
+timeout = 12*60*60 # 8h
 # timeout = 30
 timeout_formatter = "-a duration:{timeout} ".format(timeout=timeout)
 
@@ -41,17 +43,16 @@ ret =  os.system(constants.PROMISCOUS_ON)
 if ret == 0:
     logger.info("Promiscous ON")
     command = tshark_command.format(
-        interface=constants.INTERFACE, 
-        out_file=out_file)
+        interface=constants.INTERFACE)
     #capture headers inly with max size 60bytes
     command += "-s 60 "
     #save to pcap no pcap-ng
     command += output_formatter
     command += timeout_formatter
     # command += filesize_formatter
-    command += ring_buffer_formatter
+    # command += ring_buffer_formatter
     # command += "-P" # print summarry when writing to file
-
+    command += zipper.format(datetime=datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
     print command
     
     ret = os.system(command)
